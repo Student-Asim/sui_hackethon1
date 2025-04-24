@@ -14,7 +14,7 @@ import { useState } from 'react';
 import './App.css';
 import '@mysten/dapp-kit/dist/index.css';
 import { useEffect } from 'react';
-
+const backendUrl = process.env.REACT_APP_BACKEND_URL;
 // Config options for the networks you want to connect to
 const { networkConfig } = createNetworkConfig({
   testnet: { url: getFullnodeUrl('testnet') },
@@ -176,10 +176,27 @@ function TransactionComponent() {
                     onSuccess: (result) => {
                       console.log('Transaction successful:', result);
                       setDigest(result.digest);
+                    
+                      // Send digest and orderId to backend
+                      fetch(backendUrl, {
+                        method: 'POST',
+                        headers: {
+                          'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                          orderId: orderId,
+                          digest: result.digest,
+                        }),
+                      })
+                        .then((res) => res.json())
+                        .then((data) => {
+                          console.log('Backend response:', data);
+                        })
+                        .catch((err) => {
+                          console.error('Failed to notify backend:', err);
+                        });
                     },
-                    onError: (error) => {
-                      console.error('Transaction failed:', error);
-                    },
+                    
                   }
                 );
               }}
